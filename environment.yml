@@ -1,0 +1,54 @@
+name: cv
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  # Python
+  - python=3.10
+
+  # PyTorch + CUDA（conda 统一管理，避免 DLL 版本冲突）
+  # 根据本机驱动选择 cudatoolkit 版本；cu118 兼容 RTX 3060/3080
+  - pytorch::pytorch=2.1.2
+  - pytorch::torchvision=0.16.2
+  - pytorch::torchaudio=2.1.2
+  - pytorch::pytorch-cuda=11.8
+
+  # 科学计算基础
+  - numpy>=1.24
+  - scipy>=1.12
+  - pillow>=10.2
+
+  # 图像处理
+  - conda-forge::opencv>=4.9
+
+  # Notebook
+  - ipykernel>=6.29
+  - ipywidgets>=8.1
+  - matplotlib>=3.8
+
+  # pip-only 依赖
+  - pip
+  - pip:
+    # Grounding DINO（从 third_party 源码安装，需先 clone）
+    # 取消注释后执行：pip install -e third_party/GroundingDINO
+    # - "-e third_party/GroundingDINO"
+
+    # 文本编码器 / ViT backbone
+    - transformers>=4.38.0
+    - timm>=0.9.12
+    - tokenizers>=0.15.0
+    - einops>=0.7.0
+
+    # COCO 评测
+    - pycocotools>=2.0.7
+
+    # 可视化辅助
+    - supervision>=0.19.0
+
+    # Grounding DINO 工具依赖
+    - addict>=2.4.0
+    - yapf>=0.40.0
+    - tqdm>=4.66.0
+    - pyyaml>=6.0.1

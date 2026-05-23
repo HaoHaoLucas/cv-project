@@ -1,0 +1,46 @@
+# 数据集与权重（体积大，不入库）
+data/
+weights/
+results/cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# conda 环境（使用 conda env named "cv"，本地环境不入库）
+.venv/
+venv/
+env/
+cv-env.tar.gz
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 日志与临时文件
+*.log
+*.tmp
+*.bak
+wandb/
+runs/
+
+# third_party 编译产物（保留源码，忽略 .so/.pyd）
+third_party/GroundingDINO/groundingdino/models/GroundingDINO/ops/build/
+third_party/GroundingDINO/groundingdino/models/GroundingDINO/ops/MultiScaleDeformableAttention*.so
+third_party/GroundingDINO/groundingdino/models/GroundingDINO/ops/MultiScaleDeformableAttention*.pyd

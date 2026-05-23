@@ -1,0 +1,32 @@
+# Visual Grounding 评测配置 —— RefCOCO / RefCOCO+ / RefCOCOg
+
+model:
+  backend: gdino
+  config_path: configs/GroundingDINO_SwinT_OGC.py
+  weights_path: weights/groundingdino_swint_ogc.pth
+  hf_model_id: IDEA-Research/grounding-dino-tiny
+  device: cuda
+
+inference:
+  # semantic: token 对齐选框；argmax: 旧策略（最高分框）
+  selection: semantic
+  top_k: 10
+  box_threshold: 0.10
+  text_threshold: 0.05
+  max_side: 800
+  batch_size: 1
+
+data:
+  # refer 工具根目录，包含 refcoco/ refcoco+/ refcocog/ 三个子目录
+  refer_root: data/refcoco
+  # COCO train2014 图像目录（RefCOCO 图像来源）
+  coco_img_dir: data/coco/train2014
+  # 评测划分：val / testA / testB（refcocog 只有 val）
+  splits:
+    refcoco:  [val, testA, testB]
+    refcoco+: [val, testA, testB]
+    refcocog: [val]
+
+output:
+  predictions_dir: results/refcoco_gdino
+  metrics_path: results/refcoco_gdino/metrics.json
