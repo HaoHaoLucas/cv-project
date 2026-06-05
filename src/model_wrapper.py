@@ -178,7 +178,7 @@ class GroundingDINOWrapper:
         if self.cfg.backend == "gdino":
             result = self._predict_gdino(img_resized, caption, box_thr, txt_thr, img_w, img_h)
         else:
-            result = self._predict_hf(img_resized, caption, box_thr, img_w, img_h)
+            result = self._predict_hf(img_resized, caption, box_thr, txt_thr, img_w, img_h)
 
         # COCO / RefCOCO GT 使用原图坐标，需将框从 resize 空间映射回去
         if (img_w, img_h) != (orig_w, orig_h) and len(result.boxes_xyxy) > 0:
@@ -237,6 +237,7 @@ class GroundingDINOWrapper:
         image: Image.Image,
         caption: str,
         box_thr: float,
+        txt_thr: float,
         img_w: int,
         img_h: int,
     ) -> PredictResult:
@@ -256,7 +257,7 @@ class GroundingDINOWrapper:
             outputs,
             inputs["input_ids"],
             box_threshold=box_thr,
-            text_threshold=box_thr,
+            text_threshold=txt_thr,
             target_sizes=[(img_h, img_w)],
         )[0]
 

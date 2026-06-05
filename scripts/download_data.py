@@ -34,8 +34,9 @@ REFCOCO_MANUAL_URL = "https://github.com/lichengunc/refer"
 
 def _download(url: str, dest: Path) -> Path:
     """使用 wget 或 requests 下载文件。返回下载后的文件路径。"""
-    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.mkdir(parents=True, exist_ok=True)
     filename = dest / url.split("/")[-1]
+    filename.parent.mkdir(parents=True, exist_ok=True)
     if filename.exists():
         print(f"  [跳过] 已存在: {filename}")
         return filename

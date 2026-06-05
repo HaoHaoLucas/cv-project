@@ -1,0 +1,28 @@
+diff --git a/groundingdino/models/GroundingDINO/ms_deform_attn.py b/groundingdino/models/GroundingDINO/ms_deform_attn.py
+index 489d501..c237dea 100644
+--- a/groundingdino/models/GroundingDINO/ms_deform_attn.py
++++ b/groundingdino/models/GroundingDINO/ms_deform_attn.py
+@@ -27,8 +27,12 @@ from torch.nn.init import constant_, xavier_uniform_
+ 
+ try:
+     from groundingdino import _C
+-except:
+-    warnings.warn("Failed to load custom C++ ops. Running on CPU mode Only!")
++
++    _cpp_ops_available = True
++except Exception:
++    _C = None  # type: ignore
++    _cpp_ops_available = False
++    warnings.warn("Failed to load custom C++ ops. Using PyTorch fallback for deformable attention.")
+ 
+ 
+ # helpers
+@@ -327,7 +331,7 @@ class MultiScaleDeformableAttention(nn.Module):
+                 )
+             )
+     
+-        if torch.cuda.is_available() and value.is_cuda:
++        if torch.cuda.is_available() and value.is_cuda and _cpp_ops_available:
+             halffloat = False
+             if value.dtype == torch.float16:
+                 halffloat = True

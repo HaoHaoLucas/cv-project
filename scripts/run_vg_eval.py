@@ -167,6 +167,11 @@ def main():
                         choices=["refcoco", "refcoco+", "refcocog"])
     parser.add_argument("--split", default="validation")
     parser.add_argument("--all", action="store_true", help="跑所有数据集所有 split")
+    parser.add_argument(
+        "--fresh-metrics",
+        action="store_true",
+        help="不合并已有 metrics.json（--all 全量 semantic 时应开启）",
+    )
     parser.add_argument("--max-samples", type=int, default=None,
                         help="每个 split 最多评测样本数（调试用）")
     parser.add_argument("--hf-dir", default="data/refcoco_hf",
@@ -191,7 +196,14 @@ def main():
         tasks = [(args.dataset, args.split)]
 
     all_metrics: dict = {}
-    if metrics_path.exists():
+    if args.all and not args.fresh_metrics:
+        logger.warning("建议 --all 时加 --fresh-metrics，避免与旧 metrics 混合")
+    if args.fresh_metrics:
+        if metrics_path.exists():
+            archive = metrics_path.with_suffix(".json.bak")
+            metrics_path.rename(archive)
+            logger.info("已归档旧 metrics → %s", archive)
+    elif metrics_path.exists():
         with open(metrics_path, encoding="utf-8") as f:
             all_metrics = json.load(f)
 
