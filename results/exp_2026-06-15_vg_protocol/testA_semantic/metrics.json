@@ -1,0 +1,12 @@
+{
+  "refcoco": {
+    "testA": {
+      "acc": 0.545,
+      "acc_at_5": 0.935,
+      "acc_at_10": 0.96,
+      "n_hit": 109,
+      "n_total": 200,
+      "selection": "semantic"
+    }
+  }
+}

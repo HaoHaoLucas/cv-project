@@ -128,27 +128,29 @@ python src/grounding/eval_refcoco.py --config configs/refcoco.yaml --dataset ref
 
 ## 主要结果
 
-| 任务 | 数据集 / 划分 | 指标 | 本复现 | 论文报告 |
-|------|--------------|------|--------|---------|
-| OVD  | COCO val2017 | mAP  | 43.8   | 48.4    |
-| VG   | RefCOCO val  | Acc@0.5 | 22.47 | 89.19   |
-| VG   | RefCOCO testB | Acc@0.5 | 28.97 | 85.89   |
-| VG   | RefCOCO+ val | Acc@0.5 | 23.56 | 81.22   |
-| VG   | RefCOCO+ testB | Acc@0.5 | 29.54 | 74.18   |
-| VG   | RefCOCOg val | Acc@0.5 | 30.66 | 86.94   |
+**口径**：本仓库为零样本推理。VG 应与论文 **零样本 @1** 对比，而非微调列 89%。详见 [`docs/论文指标口径说明.md`](docs/论文指标口径说明.md)。
 
-**WSL gdino 后端（全量，见 `results/coco_gdino/`、`results/refcoco_gdino/`）**：
+| 任务 | 数据集 / 划分 | 指标 | 本复现（HF 历史） | 论文零样本 | 论文微调 |
+|------|--------------|------|-------------------|------------|----------|
+| OVD  | COCO val2017 | mAP  | 43.8 | **48.4** | — |
+| VG   | RefCOCO val  | Acc@0.5 | 22.47 | **50.41** | 89.19 |
+| VG   | RefCOCO testB | Acc@0.5 | 28.97 | **43.21** | 85.89 |
+| VG   | RefCOCO+ val | Acc@0.5 | 23.56 | **51.40** | 81.22 |
+| VG   | RefCOCO+ testB | Acc@0.5 | 29.54 | **45.81** | 74.18 |
+| VG   | RefCOCOg val | Acc@0.5 | 30.66 | **60.42** | 86.94 |
 
-| 任务 | 数据集 / 划分 | 指标 | WSL gdino | 论文 |
-|------|--------------|------|-----------|------|
-| OVD  | COCO val2017 | mAP  | 42.4 | 48.4 |
-| VG   | RefCOCO val  | Acc@0.5 | 50.72 | 89.19 |
-| VG   | RefCOCO testB | Acc@0.5 | 45.00 | 85.89 |
-| VG   | RefCOCO+ val | Acc@0.5 | 51.64 | 81.22 |
-| VG   | RefCOCO+ testB | Acc@0.5 | 46.35 | 74.18 |
-| VG   | RefCOCOg val | Acc@0.5 | 60.44 | 86.94 |
+**云服务器 gdino 最佳完成（`results/exp_2026-05-23_ovd_aligned/`、`results/refcoco_gdino/`）**：
 
-*完整分析见 `reports/report.md`（含 Windows HF vs WSL gdino 对比表）。*
+| 任务 | 数据集 / 划分 | 指标 | 本仓库 | 论文零样本 | 论文微调 |
+|------|--------------|------|--------|------------|----------|
+| OVD  | COCO val2017 | mAP  | **46.16** | 48.4 | — |
+| VG   | RefCOCO val  | Acc@0.5 | **50.85** | 50.41 | 89.19 |
+| VG   | RefCOCO testB | Acc@0.5 | **45.38** | 43.21 | 85.89 |
+| VG   | RefCOCO+ val | Acc@0.5 | **51.67** | 51.40 | 81.22 |
+| VG   | RefCOCO+ testB | Acc@0.5 | **46.45** | 45.81 | 74.18 |
+| VG   | RefCOCOg val | Acc@0.5 | **60.95** | 60.42 | 86.94 |
+
+*完整分析见 `reports/report.md` §0.2。*
 
 ### 高精度复现计划（OVD + VG）
 

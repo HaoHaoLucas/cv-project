@@ -1,0 +1,12 @@
+{
+  "refcoco": {
+    "validation": {
+      "acc": 0.522,
+      "acc_at_5": 0.896,
+      "acc_at_10": 0.956,
+      "n_hit": 261,
+      "n_total": 500,
+      "selection": "semantic"
+    }
+  }
+}

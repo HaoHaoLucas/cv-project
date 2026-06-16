@@ -36,11 +36,48 @@ from src.utils.logger import get_logger
 logger = get_logger("vg_eval")
 
 DATASET_SPLITS = {
-    "refcoco":  ["validation", "testB"],
-    "refcoco+": ["validation", "testB"],
+    "refcoco":  ["validation", "testA", "testB"],
+    "refcoco+": ["validation", "testA", "testB"],
     "refcocog": ["validation"],
 }
 
+
+def _predict_argmax_official(
+    gdino_model,
+    img_path: str,
+    expr: str,
+    box_thr: float,
+    txt_thr: float,
+    device: str,
+) -> tuple[np.ndarray, np.ndarray]:
+    """官方 inference.load_image + predict，返回原图 xyxy 与 scores。"""
+    import torch
+    from torchvision.ops import box_convert
+    from groundingdino.util.inference import load_image, predict as gdino_predict
+
+    image_source, image_tensor = load_image(img_path)
+    boxes, scores, _phrases = gdino_predict(
+        gdino_model,
+        image_tensor,
+        expr,
+        box_threshold=box_thr,
+        text_threshold=txt_thr,
+        device=device,
+    )
+    if len(boxes) == 0:
+        return np.zeros((0, 4), dtype=np.float32), np.zeros(0, dtype=np.float32)
+    h, w = image_source.shape[:2]
+    boxes_abs = boxes * torch.tensor([w, h, w, h], device=boxes.device, dtype=boxes.dtype)
+    boxes_xyxy = box_convert(boxes=boxes_abs, in_fmt="cxcywh", out_fmt="xyxy")
+    return boxes_xyxy.cpu().numpy().astype(np.float32), scores.cpu().numpy().astype(np.float32)
+
+
+def _hit_at_k(boxes_xyxy: np.ndarray, scores: np.ndarray, gt_box: np.ndarray, k: int, iou_thr: float) -> bool:
+    if len(scores) == 0:
+        return False
+    order = np.argsort(-scores)[:k]
+    ious = batch_iou(boxes_xyxy[order], gt_box)
+    return bool((ious >= iou_thr).any())
 
 def load_parquet_samples(parquet_path: Path, coco_img_dir: Path) -> list[dict]:
     """从 parquet 文件加载 VG 样本。
@@ -96,6 +133,8 @@ def eval_one_split(
     txt_thr = float(infer_cfg.get("text_threshold", model.cfg.text_threshold))
 
     n_hit = 0
+    n_hit_at_5 = 0
+    n_hit_at_10 = 0
     per_sample = []
 
     for sample in tqdm(samples, desc="  推理", leave=False):
@@ -109,7 +148,28 @@ def eval_one_split(
             per_sample.append({**sample, "iou": 0.0, "hit": False, "pred_box": None})
             continue
 
-        if selection == "semantic" and model.cfg.backend == "gdino":
+        pred_score = 0.0
+        pred_box = None
+        best_iou = 0.0
+        all_boxes = np.zeros((0, 4), dtype=np.float32)
+        all_scores = np.zeros(0, dtype=np.float32)
+
+        if selection == "argmax_official" and model.cfg.backend == "gdino":
+            try:
+                all_boxes, all_scores = _predict_argmax_official(
+                    model._model, img_path, expr, box_thr, txt_thr, model.cfg.device
+                )
+            except Exception:
+                per_sample.append({**sample, "iou": 0.0, "hit": False, "pred_box": None})
+                continue
+            if len(all_scores) == 0:
+                per_sample.append({**sample, "iou": 0.0, "hit": False, "pred_box": None})
+                continue
+            best_idx = int(np.argmax(all_scores))
+            pred_box = all_boxes[best_idx]
+            pred_score = float(all_scores[best_idx])
+            best_iou = float(batch_iou(pred_box[None], gt_box)[0])
+        elif selection == "semantic" and model.cfg.backend == "gdino":
             try:
                 _, outputs, (orig_w, orig_h) = model.predict_raw(pil_img, expr)
             except RuntimeError:
@@ -128,8 +188,13 @@ def eval_one_split(
                 per_sample.append({**sample, "iou": 0.0, "hit": False, "pred_box": None})
                 continue
             best_iou = float(batch_iou(pred_box[None], gt_box)[0])
+            aux = model.predict(pil_img, expr, box_threshold=box_thr, text_threshold=txt_thr)
+            all_boxes = aux.boxes_xyxy
+            all_scores = aux.scores
         else:
             result = model.predict(pil_img, expr, box_threshold=box_thr, text_threshold=txt_thr)
+            all_boxes = result.boxes_xyxy
+            all_scores = result.scores
             if len(result.boxes_xyxy) == 0:
                 per_sample.append({**sample, "iou": 0.0, "hit": False, "pred_box": None})
                 continue
@@ -141,6 +206,10 @@ def eval_one_split(
         hit = best_iou >= iou_threshold
         if hit:
             n_hit += 1
+        if _hit_at_k(all_boxes, all_scores, gt_box, 5, iou_threshold):
+            n_hit_at_5 += 1
+        if _hit_at_k(all_boxes, all_scores, gt_box, 10, iou_threshold):
+            n_hit_at_10 += 1
 
         per_sample.append({
             "ref_id": sample["ref_id"],
@@ -148,7 +217,7 @@ def eval_one_split(
             "expr": expr,
             "img_path": img_path,
             "gt_box": gt_box.tolist(),
-            "pred_box": pred_box.tolist(),
+            "pred_box": pred_box.tolist() if pred_box is not None else None,
             "pred_score": pred_score,
             "iou": best_iou,
             "hit": hit,
@@ -157,7 +226,17 @@ def eval_one_split(
 
     n_total = len(per_sample)
     acc = n_hit / n_total if n_total > 0 else 0.0
-    return {"acc": acc, "n_hit": n_hit, "n_total": n_total, "per_sample": per_sample}
+    return {
+        "acc": acc,
+        "acc_at_5": n_hit_at_5 / n_total if n_total > 0 else 0.0,
+        "acc_at_10": n_hit_at_10 / n_total if n_total > 0 else 0.0,
+        "n_hit": n_hit,
+        "n_hit_at_5": n_hit_at_5,
+        "n_hit_at_10": n_hit_at_10,
+        "n_total": n_total,
+        "per_sample": per_sample,
+        "selection": selection,
+    }
 
 
 def main():
@@ -176,13 +255,33 @@ def main():
                         help="每个 split 最多评测样本数（调试用）")
     parser.add_argument("--hf-dir", default="data/refcoco_hf",
                         help="parquet 文件根目录")
+    parser.add_argument(
+        "--selection",
+        default=None,
+        choices=["semantic", "argmax", "argmax_official"],
+        help="覆盖 configs/refcoco.yaml 的 inference.selection",
+    )
+    parser.add_argument(
+        "--protocol-out",
+        type=Path,
+        default=None,
+        help="协议审计输出目录（metrics + 对照 JSON）",
+    )
     args = parser.parse_args()
 
     cfg = load_yaml(args.config)
+    if args.selection:
+        cfg.setdefault("inference", {})["selection"] = args.selection
     coco_img_dir = Path(cfg["data"]["coco_img_dir"])
     out_dir = Path(cfg["output"].get("predictions_dir", "results/refcoco"))
-    out_dir.mkdir(parents=True, exist_ok=True)
-    metrics_path = Path(cfg["output"].get("metrics_path", "results/refcoco/metrics.json"))
+    if args.protocol_out:
+        out_dir = args.protocol_out
+        out_dir.mkdir(parents=True, exist_ok=True)
+    else:
+        out_dir.mkdir(parents=True, exist_ok=True)
+    metrics_path = out_dir / "metrics.json" if args.protocol_out else Path(
+        cfg["output"].get("metrics_path", "results/refcoco/metrics.json")
+    )
 
     logger.info("加载模型 ...")
     model = GroundingDINOWrapper.from_config(cfg)
@@ -230,7 +329,12 @@ def main():
         if dataset not in all_metrics:
             all_metrics[dataset] = {}
         all_metrics[dataset][split] = {
-            "acc": result["acc"], "n_hit": result["n_hit"], "n_total": result["n_total"]
+            "acc": result["acc"],
+            "acc_at_5": result.get("acc_at_5"),
+            "acc_at_10": result.get("acc_at_10"),
+            "n_hit": result["n_hit"],
+            "n_total": result["n_total"],
+            "selection": result.get("selection", cfg.get("inference", {}).get("selection")),
         }
         save_json(all_metrics, metrics_path)
         logger.info("指标已写盘: %s / %s", dataset, split)

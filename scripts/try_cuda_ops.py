@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 GDINO = ROOT / "third_party" / "GroundingDINO"
-OUT = ROOT / "results" / "exp_2026-05-23_cuda_ops"
+OUT = ROOT / "results" / "exp_2026-06-15_cuda_built"
 OUT.mkdir(parents=True, exist_ok=True)
 LOG = OUT / "build_attempt.log"
 
@@ -40,8 +40,8 @@ def main() -> int:
         return 0
 
     env = os.environ.copy()
-    # WSL: 优先 gcc-11 + cuda toolkit
-    for gcc in ("gcc-11", "gcc-10"):
+    # CUDA 11.5 + gcc-11 会编译失败；优先 gcc-10
+    for gcc in ("gcc-10", "gcc-11"):
         p = f"/usr/bin/{gcc}"
         if Path(p).exists():
             env["CC"] = p

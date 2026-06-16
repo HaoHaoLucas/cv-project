@@ -1,0 +1,6 @@
+{
+  "cuda_subset_mAP": 0.4717441539971344,
+  "fallback_full_mAP": 0.46159635984208,
+  "subset": 500,
+  "note": "子集 mAP 不可直接与全量 46.16 对比，仅验证 CUDA 管线可跑通"
+}

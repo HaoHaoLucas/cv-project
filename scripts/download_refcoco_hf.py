@@ -22,10 +22,12 @@ DATASETS = {
     "refcocog": "jxu124/refcocog",
 }
 SPLITS = {
-    "refcoco": ["validation", "testB"],
-    "refcoco+": ["validation", "testB"],
+    "refcoco": ["validation", "testA", "testB"],
+    "refcoco+": ["validation", "testA", "testB"],
     "refcocog": ["validation"],
 }
+# HuggingFace jxu124/* 将 testA 存为 data/test-*.parquet
+HF_SPLIT_ALIASES = {"testA": "test"}
 
 
 def _find_parquet(repo_id: str, split: str) -> str:
@@ -59,7 +61,8 @@ def main() -> None:
             if dest.exists() and dest.stat().st_size > 1000:
                 print(f"[跳过] {dest}")
                 continue
-            hf_name = _find_parquet(repo_id, split)
+            hf_split = HF_SPLIT_ALIASES.get(split, split)
+            hf_name = _find_parquet(repo_id, hf_split)
             print(f"下载 {repo_id} / {hf_name} -> {dest}")
             path = hf_hub_download(repo_id=repo_id, filename=hf_name, repo_type="dataset")
             shutil.copy2(path, dest)
