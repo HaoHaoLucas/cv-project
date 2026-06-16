@@ -303,11 +303,11 @@ flowchart TD
 
 - [x] 冻结 OVD/VG 基线配置与结果快照  
 - [x] 对齐 OVD 官方前后处理（`concat_token`）  
-- [ ] OVD 阈值扫描 + 全量 5k（`sweep_ovd_thresholds.py` → `run_ovd_best_full.py`）  
+- [x] OVD 阈值扫描 + 全量 5k（`sweep_ovd_thresholds.py` → `run_ovd_best_full.py`）  
 - [x] VG 语义对齐选框（`selection: semantic`）  
-- [ ] VG 阈值扫描 + 全量 `--all`  
-- [ ] CUDA 算子编译与对比（云服务器重点）  
-- [ ] 更新 `reports/report.md` 实验矩阵与归因  
+- [x] VG 阈值扫描 + 全量 `--all`  
+- [x] CUDA 算子编译与对比（云服务器重点；`fallback_pytorch` 已记录）  
+- [x] 更新 `reports/report.md` 实验矩阵与归因  
 
 ---
 

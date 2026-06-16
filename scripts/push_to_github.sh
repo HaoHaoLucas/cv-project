@@ -13,7 +13,16 @@ if ! test -f /tmp/pipeline_all_done.flag; then
   exit 1
 fi
 
-if ! python3 scripts/validate_all.py; then
+PYTHON="${PYTHON:-}"
+if test -x "${CONDA_PREFIX:-}/bin/python3" && "${CONDA_PREFIX:-}/bin/python3" -c "import numpy" 2>/dev/null; then
+  PYTHON="${CONDA_PREFIX}/bin/python3"
+elif test -x /root/miniconda3/envs/cv/bin/python3; then
+  PYTHON=/root/miniconda3/envs/cv/bin/python3
+else
+  PYTHON=python3
+fi
+
+if ! "$PYTHON" scripts/validate_all.py; then
   log "ERROR: validate_all 未通过，拒绝推送"
   exit 1
 fi
@@ -30,6 +39,7 @@ log "=== git add ==="
 git add \
   configs/ \
   reports/report.md \
+  docs/ \
   scripts/ \
   src/ \
   patches/ \

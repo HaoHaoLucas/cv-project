@@ -4,6 +4,12 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
+# conda cv（含 torch / groundingdino）
+if test -f /root/miniconda3/etc/profile.d/conda.sh; then
+  # shellcheck disable=SC1091
+  source /root/miniconda3/etc/profile.d/conda.sh
+  conda activate cv
+fi
 
 LOG=/tmp/full_pipeline_watch.log
 ZIP=data/coco/train2014.zip
@@ -42,13 +48,13 @@ log "zip 校验通过 size=$EXPECTED_SIZE"
 
 # --- 阶段 2: 解压 ---
 nimg=$(find "$DIR" -maxdepth 1 -name '*.jpg' 2>/dev/null | wc -l)
-if test "$nimg" -lt 100000; then
+if test "$nimg" -lt 80000; then
   log "解压 $ZIP → data/coco ..."
   unzip -q -o "$ZIP" -d data/coco
   nimg=$(find "$DIR" -maxdepth 1 -name '*.jpg' | wc -l)
 fi
 log "train2014 图像数: $nimg"
-if test "$nimg" -lt 100000; then
+if test "$nimg" -lt 80000; then
   log "ERROR: 图像数不足"
   exit 1
 fi
@@ -71,11 +77,8 @@ from pathlib import Path
 p = Path('$METRICS')
 if not p.exists(): sys.exit(1)
 m = json.loads(p.read_text())
-# 检查 refcoco val 是否全量 (n_total > 10000)
-for k,v in m.items():
-    if 'refcoco' in k and 'val' in k and v.get('n_total',0) > 10000:
-        sys.exit(0)
-sys.exit(1)
+n = m.get('refcoco', {}).get('validation', {}).get('n_total', 0)
+sys.exit(0 if n > 10000 else 1)
 " 2>/dev/null; then
   log "=== VG 全量 semantic --all --fresh-metrics ==="
   mkdir -p results/refcoco_gdino
@@ -106,13 +109,9 @@ else:
 
 if metrics.exists():
     m = json.loads(metrics.read_text())
-    # find refcoco val
-    acc_val = n_val = "TBD"
-    for k, v in m.items():
-        if "refcoco" in k.lower() and "val" in k.lower() and "+" not in k and "g" not in k.replace("refcoco", ""):
-            acc_val = f"{v.get('acc',0)*100:.2f}%"
-            n_val = v.get("n_total", "TBD")
-            break
+    rc = m.get("refcoco", {}).get("validation", {})
+    acc_val = f"{rc.get('acc', 0) * 100:.2f}%"
+    n_val = rc.get("n_total", "TBD")
     vg_all_line = f"**{acc_val}**"
     vg_n_line = f"n_total=**{n_val}**"
     vg_status = "**已完成**"

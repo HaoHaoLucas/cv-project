@@ -3,6 +3,11 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
+if test -f /root/miniconda3/etc/profile.d/conda.sh; then
+  # shellcheck disable=SC1091
+  source /root/miniconda3/etc/profile.d/conda.sh
+  conda activate cv
+fi
 LOG=/tmp/vg_pipeline.log
 exec >>"$LOG" 2>&1
 
@@ -10,7 +15,7 @@ echo "=== $(date -Iseconds) 等待 train2014 解压 ==="
 ZIP=data/coco/train2014.zip
 DIR=data/coco/train2014
 while true; do
-  if test -d "$DIR" && test "$(find "$DIR" -maxdepth 1 -name '*.jpg' 2>/dev/null | wc -l)" -gt 100000; then
+  if test -d "$DIR" && test "$(find "$DIR" -maxdepth 1 -name '*.jpg' 2>/dev/null | wc -l)" -gt 80000; then
     break
   fi
   if test -f "$ZIP" && ! pgrep -f "aria2c.*train2014" >/dev/null; then

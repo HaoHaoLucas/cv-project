@@ -19,11 +19,11 @@ def _get_tokenizer(model) -> object:
 
 
 def _expression_token_span(caption: str) -> list[list[int]]:
-    """整句表达式的字符 span（去掉句尾句号）。"""
+    """整句表达式的字符 span（去掉句尾句号，end 为开区间）。"""
     text = caption.rstrip(".")
     if not text:
-        return [[0, 0]]
-    return [[0, max(len(text) - 1, 0)]]
+        return []
+    return [[0, len(text)]]
 
 
 def select_box_semantic(
@@ -48,7 +48,12 @@ def select_box_semantic(
 
     tokenized = tokenizer(caption)
     span = _expression_token_span(caption)
-    pos_map = create_positive_map_from_span(tokenized, [span]).to(out_logits.device)  # [1, 256]
+    if not span:
+        return np.zeros(4, dtype=np.float32), 0.0, {"reason": "empty_caption"}
+    try:
+        pos_map = create_positive_map_from_span(tokenized, [span]).to(out_logits.device)
+    except (OverflowError, ValueError):
+        return np.zeros(4, dtype=np.float32), 0.0, {"reason": "token_span_failed"}
 
     align = (out_logits @ pos_map.T).squeeze(-1)  # [nq]
     box_conf = out_logits.max(dim=1)[0]

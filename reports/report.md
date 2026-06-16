@@ -5,7 +5,7 @@
 本项目基于 [Grounding DINO](https://arxiv.org/abs/2303.05499)（Swin-T 主干）复现了
 **开放词表目标检测（OVD）** 任务，在 COCO val2017（全量 5000 张）上进行零样本（zero-shot）评测，
 早期 Windows/HF 实验在 COCO val2017 全量上取得 **mAP = 43.8**（见下文历史记录）。
-**高精度复现（gdino + concat_token + semantic）按「最佳完成」标准仍在进行中**；以下 **§0 实验矩阵** 为唯一权威进度表。
+**高精度复现（gdino + concat_token + semantic）OVD 全量 sweep 与 VG 全量 semantic + sweep 已按 §0 矩阵验收**；以下 **§0 实验矩阵** 为唯一权威进度表。
 
 ---
 
@@ -22,8 +22,8 @@
 | OVD concat_token **全量**（旧 run） | **42.40** | `ovd_full_final.log` | — | — | 历史；已被 sweep 行取代 |
 | OVD sweep → **全量最佳**（box=0.15, text=0.05） | **46.16** | `exp_2026-05-23_ovd_aligned/`；**4993** image_id | — | — | **达标**（>42.40） |
 | VG semantic **smoke** | — | — | **54.00%** | n_total=**100** | 参考 only |
-| VG semantic **全量 --all** | — | — | TBD | 进行中（待 train2014） | **进行中** |
-| VG sweep | — | — | TBD | 排队 | **进行中** |
+| VG semantic **全量 --all** | — | — | **50.85%** | refcoco testB **45.38%**；refcoco+ val **51.67%** testB **46.45%**；refcocog val **60.95%**；n_total=**36472** | **已完成** |
+| VG sweep → **最佳**（box=0.05, text=0.05） | — | — | **52.20%** | `exp_2026-05-23_vg_sweep/`；n_total=**500**（sweep 子集） | **已完成** |
 | CUDA 自定义算子 | — | — | — | `results/exp_2026-05-23_cuda_ops/status.json` → `fallback_pytorch` | **已记录** |
 | Windows HF tiny（历史） | 43.8 | 5000 张 | 22–31% | HF 后端 | 历史对照 |
 
@@ -31,8 +31,9 @@
 
 1. **OVD 全量 sweep 已达标**：最佳阈值 box=0.15 / text=0.05，全量 mAP **46.16** > baseline 42.40（`results/exp_2026-05-23_ovd_aligned/`；4993/5000 image_id 有预测，7 张无检测条目）。
 2. **子集 vs 全量**：1k 子集 sweep 最佳 mAP 47.51；全量 46.16，与旧 997 张子集 metrics 文件无关。
-3. **VG 进行中**：需 COCO train2014 解压后跑 sweep + `--fresh-metrics --all`。
-4. **工程**：CUDA 算子未编译；推理使用 PyTorch deformable fallback；BERT 与权重已本地化离线加载。
+3. **VG semantic 全量 `--all` 已完成**（`results/refcoco_gdino/metrics.json`）：refcoco val **50.85%** / testB **45.38%**；refcoco+ val **51.67%** / testB **46.45%**；refcocog val **60.95%**；合计 n_total=**36472**。
+4. **VG sweep 已完成**：最佳阈值 box=**0.05** / text=**0.05**，子集 Acc@0.5 **52.20%**（n_total=500，`results/exp_2026-05-23_vg_sweep/best_subset.json`）。
+5. **工程**：CUDA 自定义算子未编译（`status.json` → `fallback_pytorch`）；推理使用 PyTorch deformable fallback；BERT 与权重已本地化离线加载。
 
 ---
 
