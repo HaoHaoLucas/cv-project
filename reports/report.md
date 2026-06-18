@@ -1,7 +1,8 @@
 # Grounding DINO Reproduction for Open-Vocabulary Object Detection and Visual Grounding
 
-**Student Name:** TBD  
-**Student ID:** TBD
+**Student Name:** 王扬皓, 张泰玮, 郑翔越
+
+**Student ID:** 12310802, 12310801, 12310805
 
 ## 1. Introduction
 
@@ -209,4 +210,8 @@ Overall, the project completes the intended reproduction and evaluation work. Th
 
 ## Contributions
 
-TBD (TBD): TBD
+王扬皓(12310802): 33.33%
+
+张泰玮(12310801): 33.33%
+
+郑翔越(12310805): 33.33%
