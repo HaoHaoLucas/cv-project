@@ -1,0 +1,33 @@
+{
+  "refcoco": {
+    "validation": {
+      "acc": 0.5084917851209156,
+      "n_hit": 5509,
+      "n_total": 10834
+    },
+    "testB": {
+      "acc": 0.4537782139352306,
+      "n_hit": 2312,
+      "n_total": 5095
+    }
+  },
+  "refcoco+": {
+    "validation": {
+      "acc": 0.5167317345231456,
+      "n_hit": 5559,
+      "n_total": 10758
+    },
+    "testB": {
+      "acc": 0.4645121701779505,
+      "n_hit": 2271,
+      "n_total": 4889
+    }
+  },
+  "refcocog": {
+    "validation": {
+      "acc": 0.6094771241830066,
+      "n_hit": 2984,
+      "n_total": 4896
+    }
+  }
+}

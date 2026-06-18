@@ -2,6 +2,11 @@
 data/
 weights/
 results/cache/
+third_party/
+build_report/
+_tmp_results_*/
+cv-project-*-upload.tar
+results_5090_*.tar.gz
 
 # Python
 __pycache__/
