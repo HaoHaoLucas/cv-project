@@ -140,11 +140,11 @@ These results show that the reproduced VG pipeline is aligned with the paper's z
 
 Prompt ablation results are from `results/coco/ablation_prompt.json`.
 
-| Prompt template | mAP | AP50 | Number of predictions |
-|-----------------|-----|------|-----------------------|
-| `{name}` | **47.05** | **58.80** | 2731 |
-| `a {name}` | 17.56 | 24.21 | 1675 |
-| `a photo of a {name}` | 5.24 | 6.33 | 185 |
+The results are:
+
+- Prompt template `{name}`: mAP **47.05**, AP50 **58.80**, 2731 predictions.
+- Prompt template `a {name}`: mAP 17.56, AP50 24.21, 1675 predictions.
+- Prompt template `a photo of a {name}`: mAP 5.24, AP50 6.33, 185 predictions.
 
 Direct class names work best because COCO OVD concatenates 80 category names into a single prompt. Longer templates consume the BERT token budget and can cause later categories to be truncated or poorly aligned.
 
