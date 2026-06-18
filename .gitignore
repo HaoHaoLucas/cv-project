@@ -7,6 +7,8 @@ build_report/
 _tmp_results_*/
 cv-project-*-upload.tar
 results_5090_*.tar.gz
+*_code.zip
+*_sup.zip
 
 # Python
 __pycache__/
