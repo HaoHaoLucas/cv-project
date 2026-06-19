@@ -29,6 +29,8 @@ cv-env.tar.gz
 # Jupyter checkpoints
 .ipynb_checkpoints/
 notebooks/.ipynb_checkpoints/
+.jupyter_data/
+.jupyter_runtime/
 
 # 编辑器
 .vscode/
@@ -46,6 +48,8 @@ Thumbs.db
 *.bak
 wandb/
 runs/
+results/**/*_final.png
+results/refcoco_gdino/failure_*.png
 
 # third_party 编译产物（保留源码，忽略 .so/.pyd）
 third_party/GroundingDINO/groundingdino/models/GroundingDINO/ops/build/
