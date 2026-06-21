@@ -98,7 +98,7 @@ VG 使用 Acc@0.5。若所选预测框与 ground-truth box 的 IoU 不低于 0.5
 
 #### OVD on COCO val2017
 
-主要 OVD 结果来自 `results/exp_2026-05-23_ovd_aligned/metrics.json`。
+主要 OVD 结果来自 `supplementary/metrics/ovd_self_metrics.json`，对应原始预测保存在 `supplementary/predictions/ovd_self_predictions.json`。
 
 | Metric | Result |
 |--------|--------|
@@ -124,7 +124,7 @@ VG 使用 Acc@0.5。若所选预测框与 ground-truth box 的 IoU 不低于 0.5
 
 #### Visual grounding on RefCOCO-family datasets
 
-主要 VG 结果来自 `results/refcoco_gdino/metrics.json`。
+主要 VG 结果来自 `supplementary/metrics/vg_full_metrics.json`，对应原始预测保存在 `supplementary/predictions/`。
 
 | Dataset / split | Our Acc@0.5 | Hits / Total | Paper zero-shot @1 | Difference |
 |-----------------|-------------|--------------|--------------------|------------|
@@ -138,7 +138,7 @@ VG 使用 Acc@0.5。若所选预测框与 ground-truth box 的 IoU 不低于 0.5
 
 #### Prompt ablation
 
-Prompt ablation 结果来自 `results/coco/ablation_prompt.json`。
+Prompt ablation 结果来自 `supplementary/metrics/prompt_ablation.json`。
 
 结果如下：
 

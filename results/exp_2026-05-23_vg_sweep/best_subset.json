@@ -1,7 +1,0 @@
-{
-  "box_threshold": 0.05,
-  "text_threshold": 0.05,
-  "acc": 0.522,
-  "n_hit": 261,
-  "n_total": 500
-}

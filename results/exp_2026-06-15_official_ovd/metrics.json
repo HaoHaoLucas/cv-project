@@ -1,6 +1,0 @@
-{
-  "source": "third_party/GroundingDINO/demo/test_ap_on_coco.py",
-  "mAP": 0.4850175827904249,
-  "exit_code": 0,
-  "log": "results/exp_2026-06-15_official_ovd/run.log"
-}

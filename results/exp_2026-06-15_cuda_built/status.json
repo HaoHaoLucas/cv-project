@@ -1,8 +1,0 @@
-{
-  "status": "built",
-  "compiler": "gcc-10",
-  "cuda": "11.5",
-  "torch_cuda_arch": "7.5",
-  "build_log": "results/exp_2026-06-15_cuda_built/build_gcc10.log",
-  "note": "import groundingdino._C requires LD_LIBRARY_PATH including torch/lib"
-}

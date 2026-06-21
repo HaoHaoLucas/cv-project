@@ -112,7 +112,7 @@ python src/ovd/eval_coco.py --config configs/coco_ovd.yaml --subset 1000
 python src/ovd/eval_coco.py --config configs/coco_ovd.yaml
 ```
 
-结果保存至 `results/coco/predictions.json` 和 `results/coco/metrics.json`。
+运行输出保存至 `results/coco/predictions.json` 和 `results/coco/metrics.json`。`results/` 是本地运行产物目录，不作为最终提交证据；最终报告使用的审计材料见 `supplementary/`。
 
 ### Visual Grounding — RefCOCO/+/g
 
@@ -122,7 +122,7 @@ python src/grounding/eval_refcoco.py --config configs/refcoco.yaml --dataset ref
 python src/grounding/eval_refcoco.py --config configs/refcoco.yaml --dataset refcocog
 ```
 
-结果保存至 `results/refcoco/`。
+运行输出保存至 `results/refcoco/`。最终报告使用的审计材料见 `supplementary/`。
 
 ---
 
@@ -139,7 +139,7 @@ python src/grounding/eval_refcoco.py --config configs/refcoco.yaml --dataset ref
 | VG   | RefCOCO+ testB | Acc@0.5 | 29.54 | **45.81** | 74.18 |
 | VG   | RefCOCOg val | Acc@0.5 | 30.66 | **60.42** | 86.94 |
 
-**云服务器 gdino 最佳完成（`results/exp_2026-05-23_ovd_aligned/`、`results/refcoco_gdino/`）**：
+**最终 gdino 复现结果**：指标文件集中保存在 `supplementary/metrics/`，最终 OVD/VG 原始预测保存在 `supplementary/predictions/`。
 
 | 任务 | 数据集 / 划分 | 指标 | 本仓库 | 论文零样本 | 论文微调 |
 |------|--------------|------|--------|------------|----------|
@@ -152,14 +152,11 @@ python src/grounding/eval_refcoco.py --config configs/refcoco.yaml --dataset ref
 
 *完整分析见 `reports/report.md` §0.2。*
 
-### 高精度复现计划（OVD + VG）
+### Blackboard 提交材料
 
-| 环境 | 文档 |
-|------|------|
-| **云服务器 Ubuntu 22 + V100**（推荐） | **[docs/高精度复现计划_OVD_VG.md](docs/高精度复现计划_OVD_VG.md)** §0、§11 |
-| WSL | 同上；算子编译见文档 §5 |
-
-Cursor Plan 面板若看不到 `.cursor/plans`，直接打开上述 Markdown 或将 **§11** 的 Agent 提示粘贴到对话开头。
+- `groupid_final.pdf`：使用 `reports/TBD_final.pdf`。
+- `groupid_sup.zip`：包含 `supplementary/README.md`、`supplementary/metrics/` 和 `supplementary/predictions/`。
+- `groupid_code.zip`：包含代码、配置、notebooks、报告源文件和必要文档；不包含 `data/`、`weights/`、`third_party/`、`results/`、缓存或本地 zip。
 
 ---
 
@@ -198,12 +195,18 @@ cv-project/
 │       ├── box_ops.py
 │       └── logger.py
 ├── notebooks/
-├── results/
+├── docs/
+│   └── 论文指标口径说明.md
 ├── reports/
 │   ├── report.md            # English final report source
 │   ├── report_zh.md         # Chinese final report source
 │   ├── TBD_final.pdf        # English final report
 │   └── TBD_final_zh.pdf     # Chinese final report
+├── supplementary/
+│   ├── README.md
+│   ├── metrics/             # selected final metrics
+│   └── predictions/         # selected final prediction JSON files
+├── results/                     # 本地运行输出（不入库）
 ├── third_party/GroundingDINO/   # git clone（不入库）
 ├── weights/                     # 预训练权重（不入库）
 └── data/                        # 数据集（不入库）

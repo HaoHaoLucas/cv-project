@@ -98,7 +98,7 @@ For VG, we use Acc@0.5. A prediction is correct if the selected predicted box ha
 
 #### OVD on COCO val2017
 
-The main OVD result is from `results/exp_2026-05-23_ovd_aligned/metrics.json`.
+The main OVD result is from `supplementary/metrics/ovd_self_metrics.json`, with the corresponding raw predictions saved in `supplementary/predictions/ovd_self_predictions.json`.
 
 | Metric | Result |
 |--------|--------|
@@ -124,7 +124,7 @@ The official script result confirms that the checkpoint and dataset are correct.
 
 #### Visual grounding on RefCOCO-family datasets
 
-The main VG results are from `results/refcoco_gdino/metrics.json`.
+The main VG results are from `supplementary/metrics/vg_full_metrics.json`, with the corresponding raw predictions saved in `supplementary/predictions/`.
 
 | Dataset / split | Our Acc@0.5 | Hits / Total | Paper zero-shot @1 | Difference |
 |-----------------|-------------|--------------|--------------------|------------|
@@ -138,7 +138,7 @@ These results show that the reproduced VG pipeline is aligned with the paper's z
 
 #### Prompt ablation
 
-Prompt ablation results are from `results/coco/ablation_prompt.json`.
+Prompt ablation results are from `supplementary/metrics/prompt_ablation.json`.
 
 The results are:
 

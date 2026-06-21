@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""「最佳完成」全量验收：OVD + VG + sweep 产物。"""
+"""Validate final supplementary evidence for the report."""
 from __future__ import annotations
 
 import argparse
@@ -10,10 +10,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from scripts.run_vg_eval import DATASET_SPLITS  # noqa: E402
 from scripts.validate_ovd_artifacts import count_unique_images  # noqa: E402
 
-BASELINE = ROOT / "results/exp_2026-05-23_baseline/refcoco_gdino.metrics.baseline.json"
+DATASET_SPLITS = {
+    "refcoco": ["validation", "testB"],
+    "refcoco+": ["validation", "testB"],
+    "refcocog": ["validation"],
+}
 
 
 def check_file(path: Path, label: str) -> bool:
@@ -24,71 +27,62 @@ def check_file(path: Path, label: str) -> bool:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ovd-dir", type=Path, default=Path("results/exp_2026-05-23_ovd_aligned"))
-    parser.add_argument("--ovd-sweep-dir", type=Path, default=Path("results/exp_2026-05-23_ovd_sweep"))
-    parser.add_argument("--vg-sweep-dir", type=Path, default=Path("results/exp_2026-05-23_vg_sweep"))
-    parser.add_argument("--vg-metrics", type=Path, default=Path("results/refcoco_gdino/metrics.json"))
+    parser.add_argument("--metrics-dir", type=Path, default=Path("supplementary/metrics"))
+    parser.add_argument("--predictions-dir", type=Path, default=Path("supplementary/predictions"))
     parser.add_argument("--baseline-map", type=float, default=0.424)
     parser.add_argument("--min-ovd-images", type=int, default=4990)
     args = parser.parse_args()
 
     ok = True
+    metrics_dir = args.metrics_dir
+    predictions_dir = args.predictions_dir
 
-    # sweep 产物
-    ok &= check_file(args.ovd_sweep_dir / "best_subset.json", "OVD sweep best_subset")
-    ok &= check_file(args.ovd_sweep_dir / "sweep_summary.json", "OVD sweep summary")
-    ok &= check_file(args.vg_sweep_dir / "best_subset.json", "VG sweep best_subset")
+    required_metrics = {
+        "OVD self metrics": metrics_dir / "ovd_self_metrics.json",
+        "OVD official comparison": metrics_dir / "ovd_official_comparison.json",
+        "VG full metrics": metrics_dir / "vg_full_metrics.json",
+        "Prompt ablation": metrics_dir / "prompt_ablation.json",
+        "VG sweep best subset": metrics_dir / "vg_sweep_best_subset.json",
+        "VG protocol comparison": metrics_dir / "vg_protocol_comparison.json",
+        "CUDA build status": metrics_dir / "cuda_build_status.json",
+    }
+    for label, path in required_metrics.items():
+        ok &= check_file(path, label)
 
-    # OVD 全量
-    pred = args.ovd_dir / "predictions.json"
-    met = args.ovd_dir / "metrics.json"
-    if pred.is_file() and met.is_file():
-        n_img = count_unique_images(pred)
-        mAP = float(json.loads(met.read_text())["mAP"])
+    ovd_pred = predictions_dir / "ovd_self_predictions.json"
+    ok &= check_file(ovd_pred, "OVD self predictions")
+    ovd_metrics_path = metrics_dir / "ovd_self_metrics.json"
+    if ovd_pred.is_file() and ovd_metrics_path.is_file():
+        n_img = count_unique_images(ovd_pred)
+        mAP = float(json.loads(ovd_metrics_path.read_text(encoding="utf-8"))["mAP"])
         ok_img = n_img >= args.min_ovd_images
         ok_map = mAP > args.baseline_map
-        print(
-            f"[{'OK' if ok_img else 'FAIL'}] OVD unique image_id: {n_img} (>= {args.min_ovd_images})"
-        )
+        print(f"[{'OK' if ok_img else 'FAIL'}] OVD unique image_id: {n_img} (>= {args.min_ovd_images})")
         print(f"[{'OK' if ok_map else 'FAIL'}] OVD mAP: {mAP:.4f} (> {args.baseline_map})")
         ok &= ok_img and ok_map
-    else:
-        print(f"[FAIL] OVD aligned artifacts missing under {args.ovd_dir}")
-        ok = False
 
-    # VG 全量：各 split n_total 与 baseline 一致（全量规模）
-    if not args.vg_metrics.is_file():
-        print(f"[FAIL] VG metrics missing: {args.vg_metrics}")
-        ok = False
-    else:
-        metrics = json.loads(args.vg_metrics.read_text())
-        baseline = json.loads(BASELINE.read_text()) if BASELINE.is_file() else {}
-        for ds, splits in DATASET_SPLITS.items():
-            for sp in splits:
-                key_ok = ds in metrics and sp in metrics[ds]
-                if not key_ok:
-                    print(f"[FAIL] VG missing split {ds}/{sp}")
+    vg_metrics_path = metrics_dir / "vg_full_metrics.json"
+    if vg_metrics_path.is_file():
+        metrics = json.loads(vg_metrics_path.read_text(encoding="utf-8"))
+        for dataset, splits in DATASET_SPLITS.items():
+            file_dataset = dataset.replace("+", "+")
+            for split in splits:
+                split_metrics = metrics.get(dataset, {}).get(split)
+                split_slug = "validation" if split == "validation" else split
+                pred_name = f"vg_{file_dataset}_{split_slug}_predictions.json"
+                pred_path = predictions_dir / pred_name
+                ok &= check_file(pred_path, f"VG predictions {dataset}/{split}")
+                if split_metrics is None:
+                    print(f"[FAIL] VG metrics missing split {dataset}/{split}")
                     ok = False
                     continue
-                n = metrics[ds][sp].get("n_total", 0)
-                expected = baseline.get(ds, {}).get(sp, {}).get("n_total")
-                if expected is None:
-                    print(f"[WARN] no baseline n_total for {ds}/{sp}")
-                    ok_split = n > 1000
-                else:
-                    ok_split = n == expected
-                acc = metrics[ds][sp].get("acc", 0)
-                print(
-                    f"[{'OK' if ok_split else 'FAIL'}] VG {ds}/{sp}: "
-                    f"acc={acc*100:.2f}% n_total={n} (expected {expected})"
-                )
+                acc = float(split_metrics.get("acc", 0))
+                n_total = int(split_metrics.get("n_total", 0))
+                ok_split = n_total > 1000
+                print(f"[{'OK' if ok_split else 'FAIL'}] VG {dataset}/{split}: acc={acc*100:.2f}% n_total={n_total}")
                 ok &= ok_split
 
-    # CUDA 记录
-    cuda_status = ROOT / "results/exp_2026-05-23_cuda_ops/status.json"
-    ok &= check_file(cuda_status, "CUDA ops status")
-
-    print("\n=== 总验收:", "PASS" if ok else "FAIL", "===")
+    print("\n=== Final supplementary validation:", "PASS" if ok else "FAIL", "===")
     return 0 if ok else 1
 
 

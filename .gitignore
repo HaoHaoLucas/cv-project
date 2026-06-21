@@ -2,6 +2,7 @@
 data/
 weights/
 results/cache/
+results/
 third_party/
 build_report/
 _tmp_results_*/
