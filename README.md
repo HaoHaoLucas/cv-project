@@ -199,7 +199,11 @@ cv-project/
 │       └── logger.py
 ├── notebooks/
 ├── results/
-├── reports/report.md
+├── reports/
+│   ├── report.md            # English final report source
+│   ├── report_zh.md         # Chinese final report source
+│   ├── TBD_final.pdf        # English final report
+│   └── TBD_final_zh.pdf     # Chinese final report
 ├── third_party/GroundingDINO/   # git clone（不入库）
 ├── weights/                     # 预训练权重（不入库）
 └── data/                        # 数据集（不入库）
