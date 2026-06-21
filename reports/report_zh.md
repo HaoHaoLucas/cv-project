@@ -215,3 +215,7 @@ CUDA extension 可以提升速度，但不能解释 OVD 精度差距。因此，
 张泰玮(12310801): 33.33%
 
 郑翔越(12310805): 33.33%
+
+## GitHub Repository
+
+https://github.com/HaoHaoLucas/cv-project
